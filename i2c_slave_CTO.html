@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I2C Slave Verilog 實現與教學</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 2px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05em;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        main {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 60px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.6em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .highlight-box {
+            background: #f0f4ff;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            font-size: 0.95em;
+            color: #e83e8c;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: "Consolas", "Monaco", "Courier New", monospace;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #f8f8f2;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 10px 10px 10px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .timing-diagram {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            overflow-x: auto;
+        }
+
+        .wave {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .wave-label {
+            width: 80px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .wave-pattern {
+            flex: 1;
+            height: 40px;
+            position: relative;
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        .state-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .state-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .state-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .state-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .state-table tr:hover {
+            background: #f0f4ff;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            main {
+                padding: 20px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>I2C Slave Verilog 實現與教學</h1>
+            <div class="subtitle">完整支援 Clock Stretching 的進階 I2C 從機設計</div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">概述</a></li>
+                <li><a href="#protocol">I2C 協議原理</a></li>
+                <li><a href="#statemachine">狀態機設計</a></li>
+                <li><a href="#clockstretching">Clock Stretching</a></li>
+                <li><a href="#implementation">核心實現</a></li>
+                <li><a href="#timing">時序分析</a></li>
+                <li><a href="#hardware">硬體考量</a></li>
+                <li><a href="#testing">測試驗證</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="overview">
+                <h2>概述</h2>
+                <p>本教學介紹一個功能完整的 I2C Slave Verilog 實現，支援 Fast Mode (400kHz) 操作並具備完整的 Clock Stretching 功能。此設計適合用於需要高效能 I2C 通信的嵌入式系統。</p>
+                
+                <div class="highlight-box">
+                    <h4>主要特性</h4>
+                    <ul>
+                        <li><span class="badge">7-bit</span> 7-bit 從機地址支援</li>
+                        <li><span class="badge">400kHz</span> Fast Mode 速率支援</li>
+                        <li><span class="badge">Clock Stretching</span> 完整時鐘延伸功能</li>
+                        <li><span class="badge">Open-drain</span> 開漏輸出設計</li>
+                        <li><span class="badge">Synthesizable</span> 可綜合的 RTL 設計</li>
+                    </ul>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🔧 模組化設計</h4>
+                        <p>採用狀態機架構，各功能模組獨立設計，便於維護和擴展。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚡ 高效能</h4>
+                        <p>支援 Fast Mode 400kHz 操作，滿足大多數應用需求。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🛡️ 魯棒性</h4>
+                        <p>完整的錯誤處理和邊界條件檢測，確保穩定操作。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="protocol">
+                <h2>I2C 協議原理</h2>
+                
+                <h3>基本概念</h3>
+                <p>I2C (Inter-Integrated Circuit) 是一種同步串行通信協議，使用兩條信號線：SCL (時鐘) 和 SDA (數據)。協議支援多主機、多從機架構，具有地址機制和仲裁功能。</p>
+
+                <h3>START/STOP 條件</h3>
+                <div class="highlight-box">
+                    <ul>
+                        <li><strong>START 條件</strong>：SCL 保持高電位時，SDA 由高變低</li>
+                        <li><strong>STOP 條件</strong>：SCL 保持高電位時，SDA 由低變高</li>
+                        <li><strong>重複 START</strong>：在傳輸過程中重新發出 START 條件</li>
+                    </ul>
+                </div>
+
+                <h3>數據傳輸格式</h3>
+                <p>每個字節傳輸包含 8 個數據位，後跟一個 ACK/NACK 位。數據在 SCL 高電位期間穩定，在 SCL 低電位期間可以改變。</p>
+
+                <div class="timing-diagram">
+                    <h4>基本傳輸時序</h4>
+                    <div class="wave">
+                        <div class="wave-label">SCL</div>
+                        <div class="wave-pattern">┌─┐ ┌─┐ ┌─┐ ┌─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">SDA</div>
+                        <div class="wave-pattern">─┘ └─┘ └─┘ └─┐</div>
+                    </div>
+                </div>
+
+                <h3>地址幀格式</h3>
+                <p>地址幀包含 7-bit 從機地址和 1-bit 讀寫控制位：</p>
+                <ul>
+                    <li>地址位 A6-A0：指定目標從機</li>
+                    <li>R/W 位：0 表示寫入，1 表示讀取</li>
+                </ul>
+            </section>
+
+            <section id="statemachine">
+                <h2>狀態機設計</h2>
+                <p>I2C Slave 的核心是狀態機，負責處理各種通信階段和條件轉換。</p>
+
+                <h3>狀態定義</h3>
+                <table class="state-table">
+                    <thead>
+                        <tr>
+                            <th>狀態</th>
+                            <th>描述</th>
+                            <th>觸發條件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>IDLE</code></td>
+                            <td>空閒狀態，等待 START 條件</td>
+                            <td>復位或 STOP 條件</td>
+                        </tr>
+                        <tr>
+                            <td><code>ADDR_PHASE</code></td>
+                            <td>接收 7-bit 地址</td>
+                            <td>檢測到 START 條件</td>
+                        </tr>
+                        <tr>
+                            <td><code>ADDR_ACK</code></td>
+                            <td>發送地址 ACK/NACK</td>
+                            <td>地址接收完成</td>
+                        </tr>
+                        <tr>
+                            <td><code>READ_PHASE</code></td>
+                            <td>傳輸讀取數據</td>
+                            <td>地址匹配且 R/W=1</td>
+                        </tr>
+                        <tr>
+                            <td><code>READ_ACK</code></td>
+                            <td>等待主機 ACK/NACK</td>
+                            <td>數據傳輸完成</td>
+                        </tr>
+                        <tr>
+                            <td><code>WRITE_PHASE</code></td>
+                            <td>接收寫入數據</td>
+                            <td>地址匹配且 R/W=0</td>
+                        </tr>
+                        <tr>
+                            <td><code>WRITE_ACK</code></td>
+                            <td>發送數據 ACK/NACK</td>
+                            <td>數據接收完成</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>狀態轉換邏輯</h3>
+                <pre><code>// 狀態轉換的核心邏輯
+always @(*) begin
+    next_state = state;
+    
+    case (state)
+        IDLE: begin
+            if (start_condition) begin
+                next_state = ADDR_PHASE;
+            end
+        end
+        
+        ADDR_PHASE: begin
+            if (bit_counter == 3'd7 && scl_falling) begin
+                next_state = ADDR_ACK;
+            end
+        end
+        
+        // ... 其他狀態轉換
+    endcase
+end</code></pre>
+            </section>
+
+            <section id="clockstretching">
+                <h2>Clock Stretching 詳解</h2>
+                <p>Clock Stretching 是 I2C 協議的重要特性，允許從機在需要更多處理時間時暫停主機的時鐘信號。</p>
+
+                <h3>何時使用 Clock Stretching</h3>
+                <div class="highlight-box">
+                    <ul>
+                        <li><strong>數據處理時間</strong>：從機需要時間處理接收到的數據</li>
+                        <li><strong>緩衝區管理</strong>：內部緩衝區滿或空時需要等待</li>
+                        <li><strong>中斷處理</strong>：響應高優先級中斷時暫停通信</li>
+                        <li><strong>功耗管理</strong>：在低功耗模式下延遲響應</li>
+                    </ul>
+                </div>
+
+                <h3>實現機制</h3>
+                <p>從機通過將 SCL 線拉低來實現 Clock Stretching。由於 I2C 使用開漏輸出，任何設備都可以拉低 SCL 線。</p>
+
+                <div class="timing-diagram">
+                    <h4>Clock Stretching 時序</h4>
+                    <div class="wave">
+                        <div class="wave-label">SCL</div>
+                        <div class="wave-pattern">┌─┐ ┌───────┐ ┌─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">SDA</div>
+                        <div class="wave-pattern">─┘ └─┘     └─┘</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">註解</div>
+                        <div class="wave-pattern">  正常    拉低延伸  正常</div>
+                    </div>
+                </div>
+
+                <h3>Verilog 實現</h3>
+                <pre><code>// Clock stretching 控制邏輯
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        clock_stretch <= 1'b0;
+    end else begin
+        // 在處理階段啟用 clock stretching
+        if ((state == WRITE_ACK && scl_falling) ||
+            (state == READ_ACK && scl_falling)) begin
+            clock_stretch <= 1'b1;  // 拉低 SCL
+        end else if (clock_stretch && scl_in == 1'b0) begin
+            clock_stretch <= 1'b0;  // 釋放 SCL
+        end
+    end
+end
+
+// 開漏輸出驅動
+assign scl_out = clock_stretch ? 1'b0 : 1'b1;</code></pre>
+            </section>
+
+            <section id="implementation">
+                <h2>核心實現</h2>
+
+                <h3>模組接口</h3>
+                <pre><code>module i2c_slave_CTO (
+    // 系統信號
+    input  wire        clk,           // 系統時鐘
+    input  wire        reset_n,       // 低電位復位
+    
+    // I2C 匯流排信號 (開漏)
+    input  wire        scl_in,        // SCL 輸入
+    input  wire        sda_in,        // SDA 輸入
+    output wire        scl_out,       // SCL 輸出
+    output wire        sda_out,       // SDA 輸出
+    
+    // 從機配置
+    input  wire [6:0]  slave_addr,    // 7-bit 從機地址
+    
+    // 數據介面
+    input  wire [7:0]  data_in,       // 要傳送的數據
+    output reg  [7:0]  data_out,      // 接收到的數據
+    
+    // 控制信號
+    output reg         read_req,      // 讀取請求
+    output reg         write_req,     // 寫入請求
+    input  wire        ack_bit,       // 來自用戶邏輯的 ACK
+    output reg         transfer_done, // 傳輸完成
+    
+    // 狀態信號
+    output reg         bus_busy,      // 匯流排忙碌
+    output reg         addr_match     // 地址匹配
+);</code></pre>
+
+                <h3>邊緣檢測</h3>
+                <pre><code>// SCL 和 SDA 邊緣檢測
+reg        scl_prev;
+reg        sda_prev;
+wire       scl_rising  = scl_in & ~scl_prev;
+wire       scl_falling = ~scl_in & scl_prev;
+wire       sda_rising  = sda_in & ~sda_prev;
+wire       sda_falling = ~sda_in & sda_prev;
+
+// START/STOP 條件檢測
+wire       start_condition = scl_in & sda_falling;
+wire       stop_condition  = scl_in & sda_rising;</code></pre>
+
+                <h3>數據移位暫存器</h3>
+                <pre><code>// 移位暫存器和數據處理
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        shift_reg <= 8'd0;
+        received_addr <= 7'd0;
+        rw_bit <= 1'b0;
+    end else begin
+        case (state)
+            ADDR_PHASE: begin
+                if (scl_rising) begin
+                    shift_reg <= {shift_reg[6:0], sda_in};
+                end
+            end
+            WRITE_PHASE: begin
+                if (scl_rising) begin
+                    shift_reg <= {shift_reg[6:0], sda_in};
+                end
+            end
+        endcase
+    end
+end</code></pre>
+
+                <h3>地址匹配邏輯</h3>
+                <pre><code>// 地址匹配檢測
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        addr_match <= 1'b0;
+    end else begin
+        if (state == ADDR_ACK && scl_falling) begin
+            addr_match <= (received_addr == slave_addr);
+        end else if (state == IDLE) begin
+            addr_match <= 1'b0;
+        end
+    end
+end</code></pre>
+            </section>
+
+            <section id="timing">
+                <h2>時序分析</h2>
+
+                <h3>正常寫入傳輸</h3>
+                <div class="timing-diagram">
+                    <h4>寫入操作完整時序</h4>
+                    <div class="wave">
+                        <div class="wave-label">SCL</div>
+                        <div class="wave-pattern">┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">SDA</div>
+                        <div class="wave-pattern">─┘ A6 A5 A4 A3 A2 A1 A0 W └─┘ D7 D6 D5 D4 D3 D2 D1 D0 └─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">狀態</div>
+                        <div class="wave-pattern">  START    ADDR_PHASE    ACK   WRITE_PHASE    ACK   STOP</div>
+                    </div>
+                </div>
+
+                <h3>正常讀取傳輸</h3>
+                <div class="timing-diagram">
+                    <h4>讀取操作完整時序</h4>
+                    <div class="wave">
+                        <div class="wave-label">SCL</div>
+                        <div class="wave-pattern">┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">SDA</div>
+                        <div class="wave-pattern">─┘ A6 A5 A4 A3 A2 A1 A0 R └─┘ D7 D6 D5 D4 D3 D2 D1 D0 └─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">狀態</div>
+                        <div class="wave-pattern">  START    ADDR_PHASE    ACK   READ_PHASE     ACK   STOP</div>
+                    </div>
+                </div>
+
+                <h3>Clock Stretching 場景</h3>
+                <div class="timing-diagram">
+                    <h4>包含 Clock Stretching 的寫入操作</h4>
+                    <div class="wave">
+                        <div class="wave-label">SCL</div>
+                        <div class="wave-pattern">┌─┐ ┌─┐ ┌─┐ ┌─┐ ┌───────┐ ┌─┐ ┌─┐</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">SDA</div>
+                        <div class="wave-pattern">─┘ A6 A5 A4 A3 A2 A1 A0 W └─┘ D7 D6</div>
+                    </div>
+                    <div class="wave">
+                        <div class="wave-label">註解</div>
+                        <div class="wave-pattern">                  處理延遲 (Clock Stretching)</div>
+                    </div>
+                </div>
+
+                <h3>關鍵時序參數</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>Fast Mode 規格</h4>
+                        <ul>
+                            <li>最大時鐘頻率：400 kHz</li>
+                            <li>最小 SCL 低時間：1.3 μs</li>
+                            <li>最小 SCL 高時間：0.6 μs</li>
+                            <li>最大 SCL 上升時間：300 ns</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>建立保持時間</h4>
+                        <ul>
+                            <li>SDA 建立時間：100 ns</li>
+                            <li>SDA 保持時間：0 ns</li>
+                            <li>START 建立時間：0.6 μs</li>
+                            <li>STOP 建立時間：0.6 μs</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="hardware">
+                <h2>硬體設計考量</h2>
+
+                <h3>開漏輸出設計</h3>
+                <p>I2C 協議要求開漏輸出，實現線與邏輯。在 FPGA/ASIC 中需要特別處理：</p>
+                <pre><code>// 開漏輸出實現
+assign scl_out = clock_stretch ? 1'b0 : 1'b1;  // 1 表示高阻抗
+assign sda_out = sda_out_reg ? 1'b1 : 1'b0;   // 1 表示高阻抗
+
+// 外部需要上拉電阻
+// FPGA: 設定 IO 為開漏模式
+// ASIC: 使用開漏輸出單元</code></pre>
+
+                <div class="warning-box">
+                    <h4>⚠️ 重要注意事項</h4>
+                    <ul>
+                        <li>必須使用外部上拉電阻 (典型值 2.2kΩ-10kΩ)</li>
+                        <li>FPGA IO 需配置為開漏模式</li>
+                        <li>避免內部上拉，可能影響時序</li>
+                    </ul>
+                </div>
+
+                <h3>信號完整性</h3>
+                <div class="highlight-box">
+                    <h4>去抖動設計</h4>
+                    <pre><code>// 簡單的信號同步
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        scl_sync <= 2'b11;
+        sda_sync <= 2'b11;
+    end else begin
+        scl_sync <= {scl_sync[0], scl_in};
+        sda_sync <= {sda_sync[0], sda_in};
+    end
+end</code></pre>
+                </div>
+
+                <h3>邊界條件處理</h3>
+                <ul>
+                    <li><strong>匯流排掛起</strong>：檢測 SCL/SDA 長時間低電位</li>
+                    <li><strong>競爭條件</strong>：確保狀態轉移的原子性</li>
+                    <li><strong>亞穩態</strong>：適當的信號同步</li>
+                    <li><strong>電源噪聲</strong>：適當的濾波和去耦</li>
+                </ul>
+
+                <h3>時鐘域交叉</h3>
+                <p>I2C 時鐘 (SCL) 與系統時鐘 (clk) 屬於不同時鐘域，需要小心處理：</p>
+                <pre><code>// 跨時鐘域信號處理
+always @(posedge clk or negedge reset_n) begin
+    if (!reset_n) begin
+        scl_prev <= 1'b1;
+        sda_prev <= 1'b1;
+    end else begin
+        scl_prev <= scl_in;    // 同步到系統時鐘域
+        sda_prev <= sda_in;
+    end
+end</code></pre>
+            </section>
+
+            <section id="testing">
+                <h2>測試驗證</h2>
+
+                <h3>測試策略</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>單元測試</h4>
+                        <ul>
+                            <li>狀態機轉移測試</li>
+                            <li>地址匹配邏輯驗證</li>
+                            <li>Clock Stretching 功能</li>
+                            <li>邊界條件處理</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>集成測試</h4>
+                        <ul>
+                            <li>完整傳輸序列測試</li>
+                            <li>多主機環境模擬</li>
+                            <li>錯誤注入測試</li>
+                            <li>效能和時序測試</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>測試平台架構</h3>
+                <pre><code>// 測試平台基本結構
+module i2c_slave_tb;
+    reg         clk;
+    reg         reset_n;
+    reg         scl_in;
+    reg         sda_in;
+    wire        scl_out;
+    wire        sda_out;
+    
+    // I2C Master 模型
+    reg [6:0]   master_addr;
+    reg [7:0]   master_data;
+    reg         master_rw;
+    
+    // 測試控制
+    reg         start_test;
+    reg [31:0]  test_count;
+    
+    i2c_slave_CTO uut (
+        .clk(clk),
+        .reset_n(reset_n),
+        .scl_in(scl_in),
+        .sda_in(sda_in),
+        .scl_out(scl_out),
+        .sda_out(sda_out),
+        // ... 其他連接
+    );
+    
+    // Master 時序生成
+    task i2c_write;
+        input [6:0] addr;
+        input [7:0] data;
+        // 實現 I2C 寫入時序
+    endtask
+    
+    task i2c_read;
+        input [6:0] addr;
+        output [7:0] data;
+        // 實現 I2C 讀取時序
+    endtask
+endmodule</code></pre>
+
+                <h3>驗證重點</h3>
+                <div class="success-box">
+                    <h4>✅ 關鍵驗證項目</h4>
+                    <ol>
+                        <li><strong>協議一致性</strong>：嚴格遵循 I2C 規範</li>
+                        <li><strong>時序要求</strong>：滿足 Fast Mode 時序規格</li>
+                        <li><strong>Clock Stretching</strong>：正確的延伸和釋放時機</li>
+                        <li><strong>錯誤處理</strong>：異常情況的恢復能力</li>
+                        <li><strong>並發操作</strong>：多主機仲裁處理</li>
+                    </ol>
+                </div>
+
+                <h3>仿真建議</h3>
+                <ul>
+                    <li>使用行為級模型驗證協議邏輯</li>
+                    <li>進行門級仿真驗證時序特性</li>
+                    <li>添加延時模型測試極限情況</li>
+                    <li>使用斷言檢查協議違規</li>
+                </ul>
+
+                <h3>硬體驗證</h3>
+                <div class="highlight-box">
+                    <h4>實驗室測試</h4>
+                    <ul>
+                        <li><strong>邏輯分析儀</strong>：捕獲實際 I2C 波形</li>
+                        <li><strong>示波器</strong>：測量時序參數</li>
+                        <li><strong>協議分析儀</strong>：驗證協議符合性</li>
+                        <li><strong>壓力測試</strong>：長時間運行穩定性</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2>總結</h2>
+                <p>本教學介紹的 I2C Slave Verilog 實現提供了完整的功能支援，包括 Clock Stretching、錯誤處理和時序優化。此設計可以直接應用於實際專案，或作為更複雜 I2C 實現的基礎。</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🎯 設計優勢</h4>
+                        <ul>
+                            <li>完全符合 I2C 規範</li>
+                            <li>支援 Fast Mode 操作</li>
+                            <li>魯棒的錯誤處理</li>
+                            <li>可綜合的 RTL 設計</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🚀 應用場景</h4>
+                        <ul>
+                            <li>嵌入式系統通信</li>
+                            <li>感測器介面</li>
+                            <li>記憶體擴展</li>
+                            <li>配置管理</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>下一步建議</h4>
+                    <ul>
+                        <li>根據特定應用調整參數</li>
+                        <li>添加 DMA 支援以提高效能</li>
+                        <li>實現多從機地址支援</li>
+                        <li>考慮添加低功耗模式</li>
+                    </ul>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="i2c_slave_CTO.v" class="btn" download>下載 Verilog 原始碼</a>
+                    <a href="#" class="btn">返回頂部</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
