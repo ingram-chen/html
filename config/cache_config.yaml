@@ -1,0 +1,12 @@
+# Cache Configuration for Taiwan Daily Stock Recommender
+
+cache:
+  enabled: true
+  ttl_hours: 24
+  storage_path: ".cache/stock_data"
+  max_size_mb: 100
+
+stock_data:
+  update_interval_hours: 4
+  retry_attempts: 3
+  retry_delay_seconds: 5
