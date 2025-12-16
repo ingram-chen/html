@@ -1,0 +1,6 @@
+# Output files
+*.json
+*.csv
+*.xlsx
+*.txt
+*.html

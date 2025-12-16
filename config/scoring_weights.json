@@ -1,0 +1,24 @@
+{
+  "technical_indicators": {
+    "rsi": 0.25,
+    "macd": 0.20,
+    "moving_average_crossover": 0.20,
+    "bollinger_bands": 0.15,
+    "volume_trend": 0.20
+  },
+  "trend_analysis": {
+    "uptrend": 0.4,
+    "downtrend": -0.4,
+    "sideways": 0.0
+  },
+  "thresholds": {
+    "buy_signal_min_score": 0.6,
+    "sell_signal_max_score": -0.6,
+    "hold_range": [-0.6, 0.6]
+  },
+  "recommendation_confidence": {
+    "high": 0.8,
+    "medium": 0.5,
+    "low": 0.3
+  }
+}
